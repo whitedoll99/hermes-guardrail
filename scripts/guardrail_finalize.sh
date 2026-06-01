@@ -19,11 +19,13 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/common.sh"
 
 GUARDRAIL_ID=""
 PROJECT_DIR_OVERRIDE=""
+BRANCH_OVERRIDE=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --guardrail-id) GUARDRAIL_ID="$2"; shift 2 ;;
         --project-dir)  PROJECT_DIR_OVERRIDE="$2"; shift 2 ;;
+        --branch)       BRANCH_OVERRIDE="$2"; shift 2 ;;
         -h|--help)
             cat <<'EOF'
 Usage: guardrail_finalize.sh [OPTIONS]
@@ -31,6 +33,7 @@ Usage: guardrail_finalize.sh [OPTIONS]
 Options:
   --guardrail-id ID   Guardrail ID from prepare step (required)
   --project-dir DIR   Override project directory (default: from source.yaml)
+  --branch BRANCH     Compare against this branch instead of HEAD (for worktree tasks)
 EOF
             exit 0
             ;;
@@ -67,10 +70,31 @@ read_yaml_list "$SOURCE_FILE" "allowed_files" ALLOWED_FILES
 log "guardrail_id=$GUARDRAIL_ID project_dir=$PROJECT_DIR base_sha=${GIT_BASE_SHA:0:12}"
 log "forbidden_paths=${#FORBIDDEN_PATHS[@]} allowed_files=${#ALLOWED_FILES[@]}"
 
+# ── Determine comparison target ───────────────────────────────────
+
+COMPARE_REF="HEAD"
+if [[ -n "$BRANCH_OVERRIDE" ]]; then
+    if git -C "$PROJECT_DIR" rev-parse --verify "$BRANCH_OVERRIDE" &>/dev/null; then
+        COMPARE_REF="$BRANCH_OVERRIDE"
+        log "comparing against branch: $COMPARE_REF"
+    else
+        fail "branch not found: $BRANCH_OVERRIDE"
+    fi
+else
+    KANBAN_TASK_ID=$(yaml_get "$SOURCE_FILE" "kanban_task_id")
+    if [[ -n "$KANBAN_TASK_ID" && "$KANBAN_TASK_ID" != "null" ]]; then
+        AUTO_BRANCH="wt/${KANBAN_TASK_ID}"
+        if git -C "$PROJECT_DIR" rev-parse --verify "$AUTO_BRANCH" &>/dev/null; then
+            COMPARE_REF="$AUTO_BRANCH"
+            log "auto-detected worker branch: $COMPARE_REF"
+        fi
+    fi
+fi
+
 # ── Collect changed files ──────────────────────────────────────────
 
-COMMITTED_CHANGES=$(git -C "$PROJECT_DIR" diff --name-only "${GIT_BASE_SHA}" HEAD 2>/dev/null || true)
-UNCOMMITTED_CHANGES=$(git -C "$PROJECT_DIR" diff --name-only HEAD 2>/dev/null || true)
+COMMITTED_CHANGES=$(git -C "$PROJECT_DIR" diff --name-only "${GIT_BASE_SHA}" "$COMPARE_REF" 2>/dev/null || true)
+UNCOMMITTED_CHANGES=$(git -C "$PROJECT_DIR" diff --name-only "$COMPARE_REF" 2>/dev/null || true)
 UNTRACKED=$(git -C "$PROJECT_DIR" ls-files --others --exclude-standard 2>/dev/null || true)
 
 ALL_CHANGED=$(printf '%s\n%s\n%s\n' "$COMMITTED_CHANGES" "$UNCOMMITTED_CHANGES" "$UNTRACKED" \
