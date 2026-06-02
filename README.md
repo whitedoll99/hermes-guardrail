@@ -1,8 +1,10 @@
 # hermes-guardrail
 
-Safety and audit harness for [Hermes Agent](https://hermes-agent.nousresearch.com/) Kanban worker lanes.
+Post-task contract checker for [Hermes Agent](https://hermes-agent.nousresearch.com/) Kanban worker lanes.
 
-Provides machine-enforced contract checks (forbidden paths, allowed files) that Kanban's native orchestration does not cover. Successor to [hermes-conductor](https://github.com/whitedoll99/hermes-conductor)'s safety layer, extracted after Kanban v0.15.0 absorbed the orchestration functionality.
+Provides machine-enforced post-task diff checks (forbidden paths, allowed files) that Kanban's native orchestration does not cover. Successor to [hermes-conductor](https://github.com/whitedoll99/hermes-conductor)'s safety layer, extracted after Kanban v0.15.0 absorbed the orchestration functionality.
+
+> **Not a sandbox.** This harness does not prevent workers from reading files, making temporary changes, or communicating externally during execution. It inspects the *final artifacts* — committed and uncommitted changes — against the contract defined at prepare time. Think of it as an audit gate, not a jail.
 
 ## Scripts
 
@@ -47,10 +49,10 @@ state/{guardrail_id}/
 
 Hermes Kanban v0.15.0 introduced Triage, Swarm, worktree-per-task, claim TTL, and stalled detection -- absorbing most of hermes-conductor's orchestration. However, two safety gaps remain:
 
+- **S5 (forbidden_paths)**: No machine-enforced post-task diff checks for forbidden or out-of-scope file changes
 - **S3 (Verifier gate)**: No external verification of worker-reported task completion
-- **S5 (forbidden_paths)**: No machine-enforced file access restrictions
 
-This harness fills those gaps with minimal, script-based tooling.
+This harness starts with S5-style post-task contract checks and is designed to grow toward S3 verifier-gate validation (AC-level pass/fail, structured review reports).
 
 ## License
 
