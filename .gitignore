@@ -1,6 +1,9 @@
 # Runtime state (per-task guardrail data)
 state/
 
+# Temp files
+*.tmp
+
 # OS / editor
 .DS_Store
 *.swp

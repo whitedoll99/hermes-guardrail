@@ -1,0 +1,9 @@
+# guardrail verdict
+guardrail_id: "G-20260601-160000"
+finalized_at: "2026-06-01T16:25:00+09:00"
+contract_check: "pass"
+changed_files_count: 3
+contract_violations: []
+unexpected_files: []
+ac_verification: "manual_required"
+verdict: "pass"

@@ -1,0 +1,13 @@
+# guardrail verdict
+guardrail_id: "G-20260601-170000"
+finalized_at: "2026-06-01T17:20:00+09:00"
+contract_check: "fail"
+changed_files_count: 4
+contract_violations:
+  - file: ".env.production"
+    matched_pattern: ".env.*"
+  - file: "config/db.yaml"
+    matched_pattern: "config/"
+unexpected_files: []
+ac_verification: "manual_required"
+verdict: "fail"
