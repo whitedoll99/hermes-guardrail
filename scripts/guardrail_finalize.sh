@@ -115,6 +115,10 @@ log "Changed files: $CHANGED_COUNT"
 
 glob_to_regex() {
     local pat="$1"
+    # Trailing slash means "everything under this directory"
+    if [[ "$pat" == */ ]]; then
+        pat="${pat}**"
+    fi
     pat=$(printf '%s' "$pat" | sed 's/\./\\./g; s/+/\\+/g; s/\[/\\[/g; s/\]/\\]/g')
     pat="${pat//\*\*/___DOUBLESTAR___}"
     pat="${pat//\*/[^\/]*}"
@@ -162,16 +166,12 @@ done <<< "$ALL_CHANGED"
 
 # ── Determine verdict ─────────────────────────────────────────────
 
-if [[ ${#CONTRACT_VIOLATIONS[@]} -gt 0 ]]; then
+if [[ ${#CONTRACT_VIOLATIONS[@]} -gt 0 || ${#UNEXPECTED_FILES[@]} -gt 0 ]]; then
     CONTRACT_CHECK="fail"
+    VERDICT="fail"
 else
     CONTRACT_CHECK="pass"
-fi
-
-if [[ "$CONTRACT_CHECK" == "pass" ]]; then
     VERDICT="pass"
-else
-    VERDICT="fail"
 fi
 
 # ── Write verdict.yaml ─────────────────────────────────────────────

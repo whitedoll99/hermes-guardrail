@@ -22,6 +22,7 @@ prepare ──────────────────────> Kanb
 | Script | Purpose | Exit codes |
 |--------|---------|------------|
 | `guardrail_prepare.sh` | Pre-task: freeze git base SHA, define forbidden paths, generate source snapshot | 0 = success, 1 = error |
+| `guardrail_attach.sh` | Link a Kanban task ID to an existing source.yaml | 0 = success, 1 = error |
 | `guardrail_finalize.sh` | Post-task: diff check against contract, emit verdict | 0 = pass, 1 = fail (violations), 2 = inconclusive |
 | `guardrail_doctor.sh` | Health check: Hermes Agent, Kanban board, worker profiles, guardrail state | 0 = clean, 1 = errors, 2 = warnings only |
 
@@ -41,11 +42,15 @@ bash scripts/guardrail_prepare.sh \
 # 2. Create the Kanban task (prepare prints a suggested command)
 hermes kanban create --assignee kanban-worker --workspace worktree \
   --max-runtime 300 --body "..." "Add user auth endpoint"
+# → returns task ID, e.g. t42
 
-# 3. After the worker completes, finalize
+# 3. Attach the Kanban task ID to the guardrail
+bash scripts/guardrail_attach.sh --guardrail-id G-20260601-160000 --task-id t42
+
+# 4. After the worker completes, finalize
 bash scripts/guardrail_finalize.sh --guardrail-id G-20260601-160000
 
-# 4. Read the verdict
+# 5. Read the verdict
 cat state/G-20260601-160000/verdict.yaml
 ```
 

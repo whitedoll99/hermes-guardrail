@@ -68,7 +68,12 @@ fi
 
 hdr "Kanban Board"
 
-STATS_JSON=$(hermes kanban stats --json 2>/dev/null || echo '{}')
+STATS_JSON=$(hermes kanban stats --json 2>/dev/null || echo '')
+
+if [[ -z "$STATS_JSON" || "$STATS_JSON" == "{}" ]]; then
+    warn "kanban stats returned no data — hermes kanban may not be responding"
+    STATS_JSON='{"by_status":{}}'
+fi
 
 READY_COUNT=$(printf '%s' "$STATS_JSON" | python3 -c "
 import sys, json
