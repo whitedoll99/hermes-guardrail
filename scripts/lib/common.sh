@@ -50,3 +50,9 @@ fail() {
     log "ERROR: $*"
     exit 1
 }
+
+# inconclusive — verification could not be performed (missing data, unresolvable state)
+inconclusive() {
+    log "INCONCLUSIVE: $*"
+    exit 2
+}

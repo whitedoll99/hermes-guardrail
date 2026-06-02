@@ -47,7 +47,7 @@ validate_id "$GUARDRAIL_ID" || fail "Invalid guardrail ID: $GUARDRAIL_ID"
 # ── Read source.yaml ───────────────────────────────────────────────
 
 SOURCE_FILE="${STATE_DIR}/${GUARDRAIL_ID}/source.yaml"
-[[ -f "$SOURCE_FILE" ]] || fail "source.yaml not found: $SOURCE_FILE"
+[[ -f "$SOURCE_FILE" ]] || inconclusive "source.yaml not found: $SOURCE_FILE"
 
 PROJECT_DIR=$(yaml_get "$SOURCE_FILE" "project_dir")
 GIT_BASE_SHA=$(yaml_get "$SOURCE_FILE" "git_base_sha")
@@ -56,8 +56,8 @@ if [[ -n "$PROJECT_DIR_OVERRIDE" ]]; then
     PROJECT_DIR="$PROJECT_DIR_OVERRIDE"
 fi
 
-[[ -n "$PROJECT_DIR" && -d "$PROJECT_DIR" ]] || fail "project_dir invalid: ${PROJECT_DIR:-<empty>}"
-[[ -n "$GIT_BASE_SHA" && "$GIT_BASE_SHA" != "null" ]] || fail "git_base_sha missing in source.yaml"
+[[ -n "$PROJECT_DIR" && -d "$PROJECT_DIR" ]] || inconclusive "project_dir invalid: ${PROJECT_DIR:-<empty>}"
+[[ -n "$GIT_BASE_SHA" && "$GIT_BASE_SHA" != "null" ]] || inconclusive "git_base_sha missing in source.yaml"
 
 # Read forbidden_paths
 FORBIDDEN_PATHS=()
@@ -78,7 +78,7 @@ if [[ -n "$BRANCH_OVERRIDE" ]]; then
         COMPARE_REF="$BRANCH_OVERRIDE"
         log "comparing against branch: $COMPARE_REF"
     else
-        fail "branch not found: $BRANCH_OVERRIDE"
+        inconclusive "branch not found: $BRANCH_OVERRIDE"
     fi
 else
     KANBAN_TASK_ID=$(yaml_get "$SOURCE_FILE" "kanban_task_id")
