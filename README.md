@@ -17,6 +17,10 @@ prepare ──────────────────────> Kanb
 │ write source.yaml             │                                  │ write verdict.yaml
 ```
 
+## Companion: batch window protocol
+
+[`batch/`](batch/) documents a scheduling convention for running queued Kanban work in off-peak windows, with pre-flight backend pings, failure classification (infrastructure vs task-inherent), bounded retries, and rollover — driven by a persistent agent session. See [batch/README.md](batch/README.md).
+
 ## Scripts
 
 | Script | Purpose | Exit codes |
